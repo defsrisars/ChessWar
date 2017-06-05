@@ -1,7 +1,6 @@
-# README #
+# ChessWar
+ChessWarDoc
 
-This README would normally document whatever steps are necessary to get your application up and running.
-
-### What is this repository for? ###
-
-* ChessWar
+此網頁為ChessWar專案用來放置程式使用
+關於專案更多訊息請參考：
+https://sites.google.com/view/chesswar
