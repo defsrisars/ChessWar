@@ -52,6 +52,7 @@ public abstract class AbstractPlayer{
 	
 	/**
 	 * 複製傳入棋子之所有棋子之狀態
+	 * @param chess 欲複製的棋子陣列
 	 * @return 回傳Chess陣列，包含傳入賽局的所有棋子狀態，可做為模擬下一步時使用
 	 */
 	protected Chess[] getAllCopyChess(Chess[] chess){

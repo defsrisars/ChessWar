@@ -136,6 +136,7 @@ public class Chess extends JButton implements Serializable, Observer{
 	
 	/**
 	 * 設定Chess的座標軸位置（請參考文件之座標說明）
+	 * @param loc 欲設定的位置
 	 */
 	public void setChessLoc(Point loc){
 		this.loc = new Point(loc) ;

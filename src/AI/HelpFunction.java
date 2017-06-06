@@ -246,7 +246,7 @@ public class HelpFunction {
 	 * @param chess 目前棋盤上的所有棋子狀態
 	 * @param c 欲移動棋子
 	 * @param p 欲移動至的位置
-	 * @return
+	 * @return 障礙物數量
 	 */
 	
 	public static int calObstacleForElephant(Chess[]chess, Chess c, Point p){
@@ -285,7 +285,7 @@ public class HelpFunction {
 	 * @param chess 目前棋盤上的所有棋子狀態
 	 * @param c 欲移動棋子
 	 * @param p 欲移動至的位置
-	 * @return
+	 * @return 障礙物數量
 	 */
 	
 	public static int calObstacleForHorse(Chess[]chess, Chess c, Point p){
@@ -371,9 +371,9 @@ public class HelpFunction {
 	
 	/**
 	 * 計算兩點之間的距離
-	 * @param p1
-	 * @param p2
-	 * @return
+	 * @param p1 Point 點1
+	 * @param p2 Point 點2
+	 * @return 回傳兩點距離
 	 */
 	public static double calDistance(Point p1, Point p2) {
 
