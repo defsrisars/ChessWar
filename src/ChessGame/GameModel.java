@@ -123,6 +123,10 @@ public class GameModel extends Observable implements Observer{
 		return this.chessRule;
 	}
 	
+	public JLayeredPane getChessPanel(){
+		return this.chessPanel;
+	}
+	
 	public ChessColorPosition getChessColorPosition(){
 		return this.colorPosition;
 	}

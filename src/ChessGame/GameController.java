@@ -1,11 +1,16 @@
 package ChessGame;
 
+import java.awt.Color;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
 import java.util.Observable;
 
+import javax.swing.border.LineBorder;
+
+import AI.HelpFunction;
 import ObserverData.MyMove;
 import ObserverData.DragData;
 
@@ -22,6 +27,8 @@ public class GameController extends Observable implements MouseMotionListener, M
 	/* 記錄滑鼠移動座標 */
 	private int mouse_x; // save mouse point x on button
 	private int mouse_y; // save mouse point y on button
+	/* 記錄可移動方框 */
+	private ArrayList<Chess> moveBorder = new ArrayList<Chess>();
 	
 	public GameController(GameModel model){
 		this.model = model;
@@ -35,6 +42,309 @@ public class GameController extends Observable implements MouseMotionListener, M
 		}
 	}
 	
+	// 選擇該棋子的可移動點，在此先採隨機取得
+	private ArrayList<Point> getMoveSet(Chess[] chess, Chess c, ChessSide chessColor){
+		ArrayList<Point> moveSet = new ArrayList<Point>();
+		// 判斷該棋子的可移動範圍，並計算分數
+		Point locP = c.getChessLoc() ;
+		int locX = locP.x;
+		int locY = locP.y ;
+
+		switch(c.getChessIndex()){
+			// 帥
+			case 1:   
+				// 九宮格
+				for(int i=3;i<=5;i++){
+					for(int j=7;j<=9;j++){
+						Point p = new Point(i,j);
+						if(!HelpFunction.hasMyChess(chess, p,chessColor) && HelpFunction.calDistance(locP, p) == 1){
+							moveSet.add(p);
+						}
+					}
+				}
+				// 王衝王
+				if(chess[16].getChessLoc().x == locX && HelpFunction.calObstacle(chess, c, chess[16].getChessLoc()) == 0){
+					 moveSet.add(new Point(chess[16].getChessLoc().x,chess[16].getChessLoc().y));
+				}
+				break;
+			// 將
+			case 17:
+				// 九宮格
+				for(int i=3;i<=5;i++){
+					for(int j=0;j<=2;j++){
+						Point p = new Point(i,j);
+						if(!HelpFunction.hasMyChess(chess, p,chessColor) && HelpFunction.calDistance(locP, p) == 1){
+							moveSet.add(p);
+						}
+					}
+				}
+				// 王衝王
+				if(chess[0].getChessLoc().x == locX && HelpFunction.calObstacle(chess, c, chess[0].getChessLoc()) == 0){
+					 moveSet.add(new Point(chess[0].getChessLoc().x,chess[0].getChessLoc().y));
+				}
+				break;
+			// 紅仕
+			case 2:
+			case 3:
+				if(!HelpFunction.hasMyChess(chess, new Point(3,9), chessColor) && HelpFunction.calDistance(locP, new Point(3,9)) == HelpFunction.calDistance(new Point(0, 0), new Point(1, 1))) moveSet.add(new Point(3,9));
+				if(!HelpFunction.hasMyChess(chess, new Point(3,7), chessColor) && HelpFunction.calDistance(locP, new Point(3,7)) == HelpFunction.calDistance(new Point(0, 0), new Point(1, 1))) moveSet.add(new Point(3,7));
+				if(!HelpFunction.hasMyChess(chess, new Point(4,8), chessColor) && HelpFunction.calDistance(locP, new Point(4,8)) == HelpFunction.calDistance(new Point(0, 0), new Point(1, 1))) moveSet.add(new Point(4,8));
+				if(!HelpFunction.hasMyChess(chess, new Point(5,9), chessColor) && HelpFunction.calDistance(locP, new Point(5,9)) == HelpFunction.calDistance(new Point(0, 0), new Point(1, 1))) moveSet.add(new Point(5,9));
+				if(!HelpFunction.hasMyChess(chess, new Point(5,7), chessColor) && HelpFunction.calDistance(locP, new Point(5,7)) == HelpFunction.calDistance(new Point(0, 0), new Point(1, 1))) moveSet.add(new Point(5,7));
+				break;
+			// 黑士
+			case 18:
+			case 19:
+				if(!HelpFunction.hasMyChess(chess, new Point(3,0), chessColor) && HelpFunction.calDistance(locP, new Point(3,0)) == HelpFunction.calDistance(new Point(0, 0), new Point(1, 1))) moveSet.add(new Point(3,0));
+				if(!HelpFunction.hasMyChess(chess, new Point(3,2), chessColor) && HelpFunction.calDistance(locP, new Point(3,2)) == HelpFunction.calDistance(new Point(0, 0), new Point(1, 1))) moveSet.add(new Point(3,2));
+				if(!HelpFunction.hasMyChess(chess, new Point(4,1), chessColor) && HelpFunction.calDistance(locP, new Point(4,1)) == HelpFunction.calDistance(new Point(0, 0), new Point(1, 1))) moveSet.add(new Point(4,1));
+				if(!HelpFunction.hasMyChess(chess, new Point(5,0), chessColor) && HelpFunction.calDistance(locP, new Point(5,0)) == HelpFunction.calDistance(new Point(0, 0), new Point(1, 1))) moveSet.add(new Point(5,0));
+				if(!HelpFunction.hasMyChess(chess, new Point(5,2), chessColor) && HelpFunction.calDistance(locP, new Point(5,2)) == HelpFunction.calDistance(new Point(0, 0), new Point(1, 1))) moveSet.add(new Point(5,2));
+				break;
+			// 紅象
+			case 4:
+			case 5:
+				if(!HelpFunction.hasMyChess(chess, new Point(0,7), chessColor) && HelpFunction.calDistance(locP, new Point(0,7)) == HelpFunction.calDistance(new Point(0, 0), new Point(2, 2)) && HelpFunction.calObstacleForElephant(chess, c, new Point(0,7)) == 0) moveSet.add(new Point(0,7));
+				if(!HelpFunction.hasMyChess(chess, new Point(2,5), chessColor) && HelpFunction.calDistance(locP, new Point(2,5)) == HelpFunction.calDistance(new Point(0, 0), new Point(2, 2)) && HelpFunction.calObstacleForElephant(chess, c, new Point(2,5)) == 0) moveSet.add(new Point(2,5));
+				if(!HelpFunction.hasMyChess(chess, new Point(2,9), chessColor) && HelpFunction.calDistance(locP, new Point(2,9)) == HelpFunction.calDistance(new Point(0, 0), new Point(2, 2)) && HelpFunction.calObstacleForElephant(chess, c, new Point(2,9)) == 0) moveSet.add(new Point(2,9));
+				if(!HelpFunction.hasMyChess(chess, new Point(4,7), chessColor) && HelpFunction.calDistance(locP, new Point(4,7)) == HelpFunction.calDistance(new Point(0, 0), new Point(2, 2)) && HelpFunction.calObstacleForElephant(chess, c, new Point(4,7)) == 0) moveSet.add(new Point(4,7));
+				if(!HelpFunction.hasMyChess(chess, new Point(6,5), chessColor) && HelpFunction.calDistance(locP, new Point(6,5)) == HelpFunction.calDistance(new Point(0, 0), new Point(2, 2)) && HelpFunction.calObstacleForElephant(chess, c, new Point(6,5)) == 0) moveSet.add(new Point(6,5));
+				if(!HelpFunction.hasMyChess(chess, new Point(6,9), chessColor) && HelpFunction.calDistance(locP, new Point(6,9)) == HelpFunction.calDistance(new Point(0, 0), new Point(2, 2)) && HelpFunction.calObstacleForElephant(chess, c, new Point(6,9)) == 0) moveSet.add(new Point(6,9));
+				if(!HelpFunction.hasMyChess(chess, new Point(8,7), chessColor) && HelpFunction.calDistance(locP, new Point(8,7)) == HelpFunction.calDistance(new Point(0, 0), new Point(2, 2)) && HelpFunction.calObstacleForElephant(chess, c, new Point(8,7)) == 0) moveSet.add(new Point(8,7));
+				break;
+			// 黑象
+			case 20:
+			case 21:
+				if(!HelpFunction.hasMyChess(chess, new Point(0,2), chessColor) && HelpFunction.calDistance(locP, new Point(0,2)) == HelpFunction.calDistance(new Point(0, 0), new Point(2, 2)) && HelpFunction.calObstacleForElephant(chess, c, new Point(0,2)) == 0) moveSet.add(new Point(0,2));
+				if(!HelpFunction.hasMyChess(chess, new Point(2,0), chessColor) && HelpFunction.calDistance(locP, new Point(2,0)) == HelpFunction.calDistance(new Point(0, 0), new Point(2, 2)) && HelpFunction.calObstacleForElephant(chess, c, new Point(2,0)) == 0) moveSet.add(new Point(2,0));
+				if(!HelpFunction.hasMyChess(chess, new Point(2,4), chessColor) && HelpFunction.calDistance(locP, new Point(2,4)) == HelpFunction.calDistance(new Point(0, 0), new Point(2, 2)) && HelpFunction.calObstacleForElephant(chess, c, new Point(2,4)) == 0) moveSet.add(new Point(2,4));
+				if(!HelpFunction.hasMyChess(chess, new Point(4,2), chessColor) && HelpFunction.calDistance(locP, new Point(4,2)) == HelpFunction.calDistance(new Point(0, 0), new Point(2, 2)) && HelpFunction.calObstacleForElephant(chess, c, new Point(4,2)) == 0) moveSet.add(new Point(4,2));
+				if(!HelpFunction.hasMyChess(chess, new Point(6,0), chessColor) && HelpFunction.calDistance(locP, new Point(6,0)) == HelpFunction.calDistance(new Point(0, 0), new Point(2, 2)) && HelpFunction.calObstacleForElephant(chess, c, new Point(6,0)) == 0) moveSet.add(new Point(6,0));
+				if(!HelpFunction.hasMyChess(chess, new Point(6,4), chessColor) && HelpFunction.calDistance(locP, new Point(6,4)) == HelpFunction.calDistance(new Point(0, 0), new Point(2, 2)) && HelpFunction.calObstacleForElephant(chess, c, new Point(6,4)) == 0) moveSet.add(new Point(6,4));
+				if(!HelpFunction.hasMyChess(chess, new Point(8,2), chessColor) && HelpFunction.calDistance(locP, new Point(8,2)) == HelpFunction.calDistance(new Point(0, 0), new Point(2, 2)) && HelpFunction.calObstacleForElephant(chess, c, new Point(8,2)) == 0) moveSet.add(new Point(8,2));
+				break;
+			// 紅車、黑車
+			case 6:
+			case 7:
+			case 22:
+			case 23:
+				// 搜尋上下左右，直到遇到第一顆棋子
+				// 左
+				for(int i=locX-1;i>=0;i--){
+					if(HelpFunction.hasChess(chess, new Point(i,locY))){
+						if(HelpFunction.getChess(chess, new Point(i,locY)).getChessSide() != chessColor){
+							moveSet.add(new Point(i,locY));
+							break;
+						}else{
+							break;
+						}
+					}else{
+						moveSet.add(new Point(i,locY));
+					}
+				}
+				// 右
+				for(int i=locX+1;i<=8;i++){
+					if(HelpFunction.hasChess(chess, new Point(i,locY))){
+						if(HelpFunction.getChess(chess, new Point(i,locY)).getChessSide() != chessColor){
+							moveSet.add(new Point(i,locY));
+							break;
+						}else{
+							break;
+						}
+					}else{
+						moveSet.add(new Point(i,locY));
+					}
+				}
+				// 上
+				for(int i=locY-1;i>=0;i--){
+					if(HelpFunction.hasChess(chess, new Point(locX,i))){
+						if(HelpFunction.getChess(chess, new Point(locX,i)).getChessSide() != chessColor){
+							moveSet.add(new Point(locX,i));
+							break;
+						}else{
+							break;
+						}
+					}else{
+						moveSet.add(new Point(locX,i));
+					}
+				}
+				// 下
+				for(int i=locY+1;i<=9;i++){
+					if(HelpFunction.hasChess(chess, new Point(locX,i))){
+						if(HelpFunction.getChess(chess, new Point(locX,i)).getChessSide() != chessColor){
+							moveSet.add(new Point(locX,i));
+							break;
+						}else{
+							break;
+						}
+					}else{
+						moveSet.add(new Point(locX,i));
+					}
+				}
+				break;
+			// 紅馬、黑馬
+			case 8:
+			case 9:
+			case 24:
+			case 25:
+				// 往左, 沒有超出邊界＆沒有卡馬腳
+				if(locX-2 >=0 && !HelpFunction.hasChess(chess, new Point(locX-1,locY))){
+					// 左上, 沒有超出邊界, 該點棋子不是我方的（可以吃）
+					if(locY-1 >=0 && !HelpFunction.hasMyChess(chess, new Point(locX-2,locY-1), chessColor)) moveSet.add(new Point(locX-2,locY-1));
+					// 左下, 沒有超出邊界, 該點棋子不是我方的（可以吃）
+					if(locY+1 <=9 && !HelpFunction.hasMyChess(chess, new Point(locX-2,locY+1), chessColor)) moveSet.add(new Point(locX-2,locY+1));
+				}
+				// 往右, 沒有超出邊界＆沒有卡馬腳
+				if(locX+2 <=8 && !HelpFunction.hasChess(chess, new Point(locX+1,locY))){
+					// 右上, 沒有超出邊界, 該點棋子不是我方的（可以吃）
+					if(locY-1 >=0 && !HelpFunction.hasMyChess(chess, new Point(locX+2,locY-1), chessColor)) moveSet.add(new Point(locX+2,locY-1));
+					// 右下, 沒有超出邊界, 該點棋子不是我方的（可以吃）
+					if(locY+1 <=9 && !HelpFunction.hasMyChess(chess, new Point(locX+2,locY+1), chessColor)) moveSet.add(new Point(locX+2,locY+1));
+				}
+				// 往上, 沒有超出邊界＆沒有卡馬腳
+				if(locY-2 >=0 && !HelpFunction.hasChess(chess, new Point(locX,locY-1))){
+					// 上左, 沒有超出邊界, 該點棋子不是我方的（可以吃）
+					if(locX-1 >=0 && !HelpFunction.hasMyChess(chess, new Point(locX-1,locY-2), chessColor)) moveSet.add(new Point(locX-1,locY-2));
+					// 上右, 沒有超出邊界, 該點棋子不是我方的（可以吃）
+					if(locX+1 <=8 && !HelpFunction.hasMyChess(chess, new Point(locX+1,locY-2), chessColor)) moveSet.add(new Point(locX+1,locY-2));
+				}
+				// 往下, 沒有超出邊界＆沒有卡馬腳
+				if(locY+2 <=9 && !HelpFunction.hasChess(chess, new Point(locX,locY+1))){
+					// 下左, 沒有超出邊界, 該點棋子不是我方的（可以吃）
+					if(locX-1 >=0 && !HelpFunction.hasMyChess(chess, new Point(locX-1,locY+2), chessColor)) moveSet.add(new Point(locX-1,locY+2));
+					// 上右, 沒有超出邊界, 該點棋子不是我方的（可以吃）
+					if(locX+1 <=8 && !HelpFunction.hasMyChess(chess, new Point(locX+1,locY+2), chessColor)) moveSet.add(new Point(locX+1,locY+2));
+				}
+				break;
+			// 紅炮、黑炮
+			case 10:
+			case 11:
+			case 26:
+			case 27:
+				// 搜尋上下左右，直到遇到第一顆棋子
+				// 左
+				boolean flag = false ;
+				for(int i=locX-1;i>=0;i--){
+					if(HelpFunction.hasChess(chess, new Point(i,locY)) && flag == false){
+						flag = true;
+						continue;
+					}else if(HelpFunction.hasChess(chess, new Point(i,locY)) && flag == true){
+						if(HelpFunction.getChess(chess, new Point(i,locY)).getChessSide() != chessColor){
+							moveSet.add(new Point(i,locY));
+							break;
+						}else{
+							break;
+						}
+					}else if(!HelpFunction.hasChess(chess, new Point(i,locY)) && flag == false){
+						moveSet.add(new Point(i,locY));
+					}
+				}
+				flag = false;
+				// 右
+				for(int i=locX+1;i<=8;i++){
+					if(HelpFunction.hasChess(chess, new Point(i,locY)) && flag == false){
+						flag = true;
+						continue;
+					}else if(HelpFunction.hasChess(chess, new Point(i,locY)) && flag == true){
+						if(HelpFunction.getChess(chess, new Point(i,locY)).getChessSide() != chessColor){
+							moveSet.add(new Point(i,locY));
+							break;
+						}else{
+							break;
+						}
+					}else if(!HelpFunction.hasChess(chess, new Point(i,locY)) && flag == false){
+						moveSet.add(new Point(i,locY));
+					}
+				}
+				flag = false;
+				// 上
+				for(int i=locY-1;i>=0;i--){
+					if(HelpFunction.hasChess(chess, new Point(locX,i)) && flag == false){
+						flag = true;
+						continue;
+					}else if(HelpFunction.hasChess(chess, new Point(locX,i)) && flag == true){
+						if(HelpFunction.getChess(chess, new Point(locX,i)).getChessSide() != chessColor){
+							moveSet.add(new Point(locX,i));
+							break;
+						}else{
+							break;
+						}
+					}else if(!HelpFunction.hasChess(chess, new Point(locX,i)) && flag == false){
+						moveSet.add(new Point(locX,i));
+					}
+				}
+				flag = false;
+				
+				// 下
+				for(int i=locY+1;i<=9;i++){
+					if(HelpFunction.hasChess(chess, new Point(locX,i)) && flag == false){
+						flag = true;
+						continue;
+					}else if(HelpFunction.hasChess(chess, new Point(locX,i)) && flag == true){
+						if(HelpFunction.getChess(chess, new Point(locX,i)).getChessSide() != chessColor){
+							moveSet.add(new Point(locX,i));
+							break;
+						}else{
+							break;
+						}
+					}else if(!HelpFunction.hasChess(chess, new Point(locX,i)) && flag == false){
+						moveSet.add(new Point(locX,i));
+					}
+				}
+				flag = false;
+				break;
+			// 兵
+			case 12:
+			case 13:
+			case 14:
+			case 15:
+			case 16:
+				// 過河了，可以走左、右、前
+				if(locY <= 4){
+					if(locX-1 >=0 && !HelpFunction.hasMyChess(chess, new Point(locX-1,locY), chessColor)){
+						moveSet.add(new Point(locX-1,locY));
+					}
+					if(locX+1 <=8 && !HelpFunction.hasMyChess(chess, new Point(locX+1,locY), chessColor)){
+						moveSet.add(new Point(locX+1,locY));
+					}
+					if(locY-1 >=0 && !HelpFunction.hasMyChess(chess, new Point(locX,locY-1), chessColor)){
+						moveSet.add(new Point(locX,locY-1));
+					}
+				// 沒有過河、只能往前
+				}else{
+					if(!HelpFunction.hasMyChess(chess, new Point(locX,locY-1), chessColor)){
+						moveSet.add(new Point(locX,locY-1));
+					}
+				}
+				break;
+			case 28:
+			case 29:
+			case 30:
+			case 31:
+			case 32:
+				// 過河了，可以走左、右、前
+				if(locY >= 5){
+					if(locX-1 >=0 && !HelpFunction.hasMyChess(chess, new Point(locX-1,locY), chessColor)){
+						moveSet.add(new Point(locX-1,locY));
+					}
+					if(locX+1 <=8 && !HelpFunction.hasMyChess(chess, new Point(locX+1,locY), chessColor)){
+						moveSet.add(new Point(locX+1,locY));
+					}
+					if(locY+1 <=9 && !HelpFunction.hasMyChess(chess, new Point(locX,locY+1), chessColor)){
+						moveSet.add(new Point(locX,locY+1));
+					}
+				// 沒有過河、只能往前
+				}else{
+					if(!HelpFunction.hasMyChess(chess, new Point(locX,locY+1), chessColor)){
+						moveSet.add(new Point(locX,locY+1));
+					}
+				}
+				break;
+		}
+		
+		return moveSet;
+	}
+	
 	/**
 	 * 玩家移動棋子，若為當前玩家拖移自己的棋子，則顯示移動效果
 	 * 並以Observer通知Chess做view update
@@ -44,6 +354,16 @@ public class GameController extends Observable implements MouseMotionListener, M
 	public void mouseDragged(MouseEvent e) {
 		Chess c = (Chess) e.getComponent();
 		if (c.getChessSide() == model.getTurn() && !model.isGameOver() && !model.getPauseStatus() && model.isGameStart() ) {
+			
+			ArrayList<Point> moveSet = this.getMoveSet(model.getAllChess(), c, model.getTurn());
+			for(int i=0;i<moveSet.size();i++){
+				Chess view = new Chess(moveSet.get(i));
+				view.setBorder(new LineBorder(Color.GREEN,2));;
+				model.changeChessViewPosition(view, moveSet.get(i));
+				model.getChessPanel().add(view,  new Integer(402));
+				moveBorder.add(view);
+			}
+			
 			int x = c.getLocation().x + (e.getX() - mouse_x) ;
 			int y = c.getLocation().y + (e.getY() - mouse_y) ;
 			setChanged();
@@ -78,7 +398,7 @@ public class GameController extends Observable implements MouseMotionListener, M
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-
+		
 	}
 	
 	/**
@@ -87,6 +407,10 @@ public class GameController extends Observable implements MouseMotionListener, M
 	 */
 	@Override
 	public void mouseReleased(MouseEvent e) {
+		/* 清除邊框 */
+		for(int i=0;i<this.moveBorder.size();i++){
+			model.getChessPanel().remove(moveBorder.get(i));
+		}
 		/* 如果滑鼠左鍵釋放，取得棋子 */
 		Chess c = (Chess) e.getComponent();
 		/* 如果選擇棋子的顏色為當前玩家 && 遊戲未結束 && 不是暫停狀態 && 遊戲已經開始 */

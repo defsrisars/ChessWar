@@ -255,8 +255,6 @@ public class BuildInAI extends AbstractPlayer{
 						}
 					}else if(!HelpFunction.hasChess(chess, new Point(i,locY)) && flag == false){
 						moveSet.add(new Point(i,locY));
-					}else{
-						break;
 					}
 				}
 				flag = false;
@@ -274,8 +272,6 @@ public class BuildInAI extends AbstractPlayer{
 						}
 					}else if(!HelpFunction.hasChess(chess, new Point(i,locY)) && flag == false){
 						moveSet.add(new Point(i,locY));
-					}else{
-						break;
 					}
 				}
 				flag = false;
@@ -293,8 +289,6 @@ public class BuildInAI extends AbstractPlayer{
 						}
 					}else if(!HelpFunction.hasChess(chess, new Point(locX,i)) && flag == false){
 						moveSet.add(new Point(locX,i));
-					}else{
-						break;
 					}
 				}
 				flag = false;
@@ -313,8 +307,6 @@ public class BuildInAI extends AbstractPlayer{
 						}
 					}else if(!HelpFunction.hasChess(chess, new Point(locX,i)) && flag == false){
 						moveSet.add(new Point(locX,i));
-					}else{
-						break;
 					}
 				}
 				flag = false;

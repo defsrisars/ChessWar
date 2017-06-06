@@ -32,15 +32,15 @@ public class DevelopAI extends AbstractPlayer{
 	
 	private int[] pointArray = {
 			-1,
-			1000,600,600,400,400,800,800,700,700,900,900,200,200,200,200,200,
-			1000,600,600,400,400,800,800,700,700,900,900,200,200,200,200,200,
+			10000,600,600,400,400,800,800,700,700,900,900,200,200,200,200,200,
+			10000,600,600,400,400,800,800,700,700,900,900,200,200,200,200,200,
 	};
 	
-	/* 炮>俥>傌>仕>像>卒>將 */
+	/* 炮>傌>俥>像>仕>卒>將 */
 	private int[] moveArray = {
 		-1,
-		0,30,30,20,20,50,50,40,40,60,60,10,10,10,10,10,	
-		0,30,30,20,20,50,50,40,40,60,60,10,10,10,10,10,	
+		0,20,20,30,30,40,40,50,50,60,60,10,10,10,10,10,	
+		0,20,20,30,30,40,40,50,50,60,60,10,10,10,10,10,	
 	};
 	
 	private static final int infMax = Integer.MAX_VALUE;
@@ -54,6 +54,8 @@ public class DevelopAI extends AbstractPlayer{
 
 	@Override
 	protected MyMove nextMove(OpponentMove opponentMove) {
+		// 執行時間計算
+		double time1 = System.currentTimeMillis();
 		
 		ArrayList<Chess> liveChess = this.getAllMyLiveChess(this.chess);
 		int max = -1 ;
@@ -66,141 +68,35 @@ public class DevelopAI extends AbstractPlayer{
 			ArrayList<Point> moveSet = this.getMoveSet(chess, liveChess.get(i), this.myChessSide);
 			/* 開始遍歷可走的每一步round1 */
 			for(int j=0;j<moveSet.size();j++){
-				int thisMovePoint = this.calculatePoint(chess, liveChess.get(i), moveSet.get(j));
-				if(thisMovePoint == 1000) // 能勝利直接剪枝
-					return new MyMove(liveChess.get(i), moveSet.get(j));
-				int point = alphaBeta(chess, liveChess.get(i), moveSet.get(j), MinMaxDepth, infMin, infMax, this.myChessSide, thisMovePoint);
+				Chess thisChess = liveChess.get(i);
+				Point thisMove = moveSet.get(j);
+				// 能勝利直接剪枝
+				if(HelpFunction.hasChess(chess, thisMove)){
+					Chess eatedChess = HelpFunction.getChess(chess, thisMove);
+					if(eatedChess.getChessName().equals("帥") || eatedChess.getChessName().equals("將"))
+						return new MyMove(thisChess, thisMove);
+				}
+				// 取得這手分數
+				int thisMovePoint = this.calculatePoint(chess, thisChess, thisMove, this.myChessSide);
+				int totalPoint = alphaBeta(chess, thisChess, thisMove, MinMaxDepth, infMin, infMax, this.myChessSide, thisMovePoint);
 				/* 記錄最佳手 */
-				if(max < point){
-					max = point;
-					maxMoveChess = liveChess.get(i);
-					maxMovePoint = moveSet.get(j);
+				if(max < totalPoint){
+					max = totalPoint;
+					maxMoveChess = thisChess;
+					maxMovePoint = thisMove;
 				}
 			}
 			
 		}
+		double time2 = System.currentTimeMillis();
+		System.out.println("time: "+((time2-time1)/1000)+" seconds");
 		System.out.println("max: "+max);
 		System.out.println("chess: "+maxMoveChess.getChessName()+"("+maxMoveChess.getChessLoc().x+","+maxMoveChess.getChessLoc().y+")");
 		System.out.println("move: ("+maxMovePoint.x+","+maxMovePoint.y+")\n");
 		return new MyMove(maxMoveChess,maxMovePoint);
 		
 //		return this.MinMax(2);
-	}
-	
-	/*
-	 * 思考：
-	 * 1. 抓取所有目前存活棋子
-	 * 2. 迴圈：選擇棋子，開始遍歷深度(3)
-	 * 3. 計算走每一步的分數
-	 * 4. 記錄棋局，換手，繼續往下
-	 */
-	
-	/* 
-	 * min-max 演算法，回傳total計算分數
-	 */
-	private MyMove MinMax(int depth){
-		
-		ArrayList<Chess> liveChessRound1 = this.getAllMyLiveChess(this.chess);
-		int max = -1 ;
-		Chess maxMoveChess = null;
-		Point maxMovePoint = null;
-		
-		int maxP1 = -1 ;
-		int maxP2 = -1 ;
-		int maxP3 = -1 ;
-		int maxP4 = -1 ;
-		
-		// 1.彈性層數
-		// 2.AI強化
-		// 3.釋出部份可用method
-		
-		/* 每一顆活著的棋子 */
-		for(int i=0;i<liveChessRound1.size();i++){
-			/* 可走的每一步round1 */
-			ArrayList<Point> moveSetRound1 = this.getMoveSet(chess, liveChessRound1.get(i), this.myChessSide);
-			/* 開始遍歷可走的每一步round1 */
-			for(int j=0;j<moveSetRound1.size();j++){
-				/* 取得這一步棋的分數round1 */
-				int pointRound1 = calculatePoint(chess, liveChessRound1.get(i),moveSetRound1.get(j));
-				/* 如果可以直接吃將帥，則直接吃棋，結束計算 */
-				if(pointRound1 == 1000){
-					System.out.println(pointRound1);
-					return new MyMove(liveChessRound1.get(i),moveSetRound1.get(j));
-				}
-				/* 模擬移動round1 */
-				Chess[] chessRound2 = this.simulateMove(this.getAllCopyChess(this.chess), liveChessRound1.get(i), moveSetRound1.get(j));
-				/* 第二層遍歷，取得活著的對方棋子 */
-				ArrayList<Chess> liveChessRound2 = this.getAllOpponentLiveChess(chessRound2);
-				/* 開始遍歷可走的每一步round2 */
-				for(int k=0;k<liveChessRound2.size();k++){
-					/* 可走的每一步round2 */
-					ArrayList<Point> moveSetRound2 = this.getMoveSet(chessRound2, liveChessRound2.get(k), this.opponentSide);
-					/* 開始遍歷可走的每一步round2 */
-					for(int l=0;l<moveSetRound2.size();l++){
-						/* 取得這一步棋的分數round2 */
-						int pointRound2 = calculatePoint(chessRound2, liveChessRound2.get(k),moveSetRound2.get(l)) * (-1);
-						/* 模擬移動round2 */
-						Chess[] chessRound3 = this.simulateMove(this.getAllCopyChess(chessRound2), liveChessRound2.get(k), moveSetRound2.get(l));
-						/* 第三層遍歷，取得活著的我方棋子 */
-						ArrayList<Chess> liveChessRound3 = this.getAllMyLiveChess(chessRound3);
-						for(int s=0;s<liveChessRound3.size();s++){
-							/* 可走的每一步round3 */
-							ArrayList<Point> moveSetRound3 = this.getMoveSet(chessRound3, liveChessRound3.get(s), this.myChessSide);
-							/* 開始遍歷可走的每一步round3 */
-							for(int t=0;t<moveSetRound3.size();t++){
-								/* 取得這一步棋的分數round3 */
-								int pointRound3 = calculatePoint(chessRound3, liveChessRound3.get(s),moveSetRound3.get(t));
-								
-								// 收官
-								if(max < pointRound1 + pointRound2 + pointRound3){
-									max = pointRound1 + pointRound2 + pointRound3;
-									maxMoveChess = liveChessRound1.get(i);
-									maxMovePoint = moveSetRound1.get(j);
-									
-									maxP1 = pointRound1;
-									maxP2 = pointRound2;
-									maxP3 = pointRound3;
-								}
-//								/* 模擬移動round3 */
-//								Chess[] chessRound4 = this.simulateMove(this.getAllCopyChess(chessRound3), liveChessRound3.get(s), moveSetRound3.get(t));
-//								/* 第四層遍歷，取得活著的我方棋子 */
-//								ArrayList<Chess> liveChessRound4 = this.getAllMyLiveChess(chessRound4);
-//								for(int x=0;x<liveChessRound4.size();x++){
-//									/* 可走的每一步round4 */
-//									ArrayList<Point> moveSetRound4 = this.getMoveSet(liveChessRound4.get(x), this.opponentSide);
-//									/* 開始遍歷可走的每一步round4 */
-//									for(int y=0;y<moveSetRound4.size();y++){
-//										/* 取得這一步棋的分數round4 */
-//										int pointRound4 = calculatePoint(liveChessRound4.get(x),moveSetRound4.get(y)) * (-1);
-//										if(pointRound4 < pointRound2) break;
-//										// 收官
-//										if(max < pointRound1 + pointRound2 + pointRound3 + pointRound4){
-//											max = pointRound1 + pointRound2 + pointRound3 + pointRound4;
-//											maxMoveChess = liveChessRound1.get(i);
-//											maxMovePoint = moveSetRound1.get(j);
-//											
-//											maxP1 = pointRound1;
-//											maxP2 = pointRound2;
-//											maxP3 = pointRound3;
-//											maxP4 = pointRound4;
-//										}
-//									}
-//								}
-								
-							}
-						}
-					}
-				}
-			}
-		}
-		System.out.println(maxP1+"___"+maxP2+"___"+maxP3);
-		
-
-
-		
-		return new MyMove(maxMoveChess,maxMovePoint);
-	}
-	
+	}	
 	
 	/* 每個node相當於一個當前局面的走法，node的value為該走法的分數
 	 * 故node包含 1. Chess[] chess 當前局面
@@ -222,10 +118,10 @@ public class DevelopAI extends AbstractPlayer{
 			for(int i=0; i<chessLive.size(); i++){
 				ArrayList<Point> moveSet = this.getMoveSet(chessRound, chessLive.get(i), this.myChessSide); // 取得可走的每一步
 				for(int j=0; j<moveSet.size();j++){
-					int thisMovePoint = this.calculatePoint(chessRound, chessLive.get(i), moveSet.get(j));
+					int thisMovePoint = this.calculatePoint(chessRound, chessLive.get(i), moveSet.get(j),this.myChessSide);
 					alpha = Math.max(alpha, alphaBeta(chessRound, chessLive.get(i), moveSet.get(j), depth-1, alpha, beta, this.opponentSide, pointSum + thisMovePoint));
 					if(beta <= alpha){
-						break; /* beta cut off */
+						return alpha; /* beta cut off */
 					}
 				}
 			}
@@ -237,10 +133,10 @@ public class DevelopAI extends AbstractPlayer{
 			for(int i=0; i<chessLive.size(); i++){
 				ArrayList<Point> moveSet = this.getMoveSet(chessRound, chessLive.get(i), this.opponentSide); // 取得可走的每一步
 				for(int j=0; j<moveSet.size();j++){
-					int thisMovePoint = 0 - this.calculatePoint(chessRound, chessLive.get(i), moveSet.get(j));
+					int thisMovePoint = this.calculatePoint(chessRound, chessLive.get(i), moveSet.get(j),this.opponentSide);
 					beta = Math.min(beta, alphaBeta(chessRound, chessLive.get(i), moveSet.get(j), depth-1, alpha, beta, this.myChessSide, pointSum + thisMovePoint));
 					if(beta <= alpha){
-						break; /* alpha cut off */
+						return beta; /* alpha cut off */
 					}
 				}
 			}
@@ -261,25 +157,45 @@ public class DevelopAI extends AbstractPlayer{
 	 * 卒兵: 20
 	 * 無 :  0
 	 */
-	private int calculatePoint(Chess[] chess, Chess c, Point p){
+	private int calculatePoint(Chess[] chess, Chess c, Point p, ChessSide side){
 		
 		if(HelpFunction.hasChess(chess, p)){
 			/* 有棋子，回傳吃棋分數 */
-//			System.out.println("point: "+this.pointArray[HelpFunction.getChess(chess, p).getChessIndex()]);
-//			System.out.println("chess: "+c.getChessName()+"("+c.getChessLoc().x+","+c.getChessLoc().y+")");
-//			System.out.println("move: ("+p.x+","+p.y+")\n");
+			int controlPoint = this.calculateControlPoint(this.getAllCopyChess(chess), c, p, side);
+			int eatPoint = this.pointArray[HelpFunction.getChess(chess, p).getChessIndex()];
 			
-			return this.pointArray[HelpFunction.getChess(chess, p).getChessIndex()];
+			return controlPoint + eatPoint ;
 		}else{
 			/* 沒有棋子，單純移動，回傳移動分數 */
-//			System.out.println("point: "+this.moveArray[c.getChessIndex()]);
-//			System.out.println("chess: "+c.getChessName()+"("+c.getChessLoc().x+","+c.getChessLoc().y+")");
-//			System.out.println("move: ("+p.x+","+p.y+")\n");
-			return this.moveArray[c.getChessIndex()];
+			int controlPoint = this.calculateControlPoint(this.getAllCopyChess(chess), c, p, side);
+			int movePoint = this.moveArray[c.getChessIndex()];
+			
+			return controlPoint + movePoint ;
 		}
 		
 	}
 	
+	/* 計算棋子移動後，可移動與可吃棋的加權分數 */
+	private int calculateControlPoint(Chess[] chess, Chess c, Point p, ChessSide side){
+		int point = 0;
+		chess = this.simulateMove(chess, c, p);
+		
+		ArrayList<Point> moveSet = this.getMoveSet(chess, chess[c.getChessIndex()-1], side); // 取得可走的每一步
+		for(int i=0; i<moveSet.size();i++){
+			/* 可吃棋 */
+			if(HelpFunction.hasChess(chess, moveSet.get(i)) && !HelpFunction.hasMyChess(chess, moveSet.get(i), side)){
+				point += 20;
+			}
+			/* 可移動 */
+			if(!HelpFunction.hasChess(chess, moveSet.get(i))){
+				point+= 5 ;
+			}
+		}
+		
+		return point;
+	}
+	
+	/* 模擬移動 */
 	private Chess[] simulateMove(Chess[] nowAllChess, Chess moveChess, Point movePoint){
 		/* 如果該點有棋子，則吃棋 */
 		if(HelpFunction.hasChess(nowAllChess, movePoint)){
@@ -311,6 +227,7 @@ public class DevelopAI extends AbstractPlayer{
 		}
 		/* 排序增加alpha-beta剪枝效率 */
 		this.resort(myChess);
+		
 		return myChess;
 	}
 	
@@ -550,8 +467,6 @@ public class DevelopAI extends AbstractPlayer{
 						}
 					}else if(!HelpFunction.hasChess(chess, new Point(i,locY)) && flag == false){
 						moveSet.add(new Point(i,locY));
-					}else{
-						break;
 					}
 				}
 				flag = false;
@@ -569,8 +484,6 @@ public class DevelopAI extends AbstractPlayer{
 						}
 					}else if(!HelpFunction.hasChess(chess, new Point(i,locY)) && flag == false){
 						moveSet.add(new Point(i,locY));
-					}else{
-						break;
 					}
 				}
 				flag = false;
@@ -588,8 +501,6 @@ public class DevelopAI extends AbstractPlayer{
 						}
 					}else if(!HelpFunction.hasChess(chess, new Point(locX,i)) && flag == false){
 						moveSet.add(new Point(locX,i));
-					}else{
-						break;
 					}
 				}
 				flag = false;
@@ -608,8 +519,6 @@ public class DevelopAI extends AbstractPlayer{
 						}
 					}else if(!HelpFunction.hasChess(chess, new Point(locX,i)) && flag == false){
 						moveSet.add(new Point(locX,i));
-					}else{
-						break;
 					}
 				}
 				flag = false;
@@ -665,5 +574,94 @@ public class DevelopAI extends AbstractPlayer{
 		
 		return moveSet;
 	}
+	
+	/*
+	 * 思考：
+	 * 1. 抓取所有目前存活棋子
+	 * 2. 迴圈：選擇棋子，開始遍歷深度(3)
+	 * 3. 計算走每一步的分數
+	 * 4. 記錄棋局，換手，繼續往下
+	 */
+	
+	/* 
+	 * min-max 演算法，回傳total計算分數
+	 */
+	private MyMove MinMax(int depth){
+		
+		ArrayList<Chess> liveChessRound1 = this.getAllMyLiveChess(this.chess);
+		int max = -1 ;
+		Chess maxMoveChess = null;
+		Point maxMovePoint = null;
+		
+		int maxP1 = -1 ;
+		int maxP2 = -1 ;
+		int maxP3 = -1 ;
+		
+		// 1.彈性層數
+		// 2.AI強化
+		// 3.釋出部份可用method
+		
+		/* 每一顆活著的棋子 */
+		for(int i=0;i<liveChessRound1.size();i++){
+			/* 可走的每一步round1 */
+			ArrayList<Point> moveSetRound1 = this.getMoveSet(chess, liveChessRound1.get(i), this.myChessSide);
+			/* 開始遍歷可走的每一步round1 */
+			for(int j=0;j<moveSetRound1.size();j++){
+				/* 取得這一步棋的分數round1 */
+				int pointRound1 = calculatePoint(chess, liveChessRound1.get(i),moveSetRound1.get(j),this.myChessSide);
+				/* 如果可以直接吃將帥，則直接吃棋，結束計算 */
+				if(pointRound1 == 10000){
+					System.out.println(pointRound1);
+					return new MyMove(liveChessRound1.get(i),moveSetRound1.get(j));
+				}
+				/* 模擬移動round1 */
+				Chess[] chessRound2 = this.simulateMove(this.getAllCopyChess(this.chess), liveChessRound1.get(i), moveSetRound1.get(j));
+				/* 第二層遍歷，取得活著的對方棋子 */
+				ArrayList<Chess> liveChessRound2 = this.getAllOpponentLiveChess(chessRound2);
+				/* 開始遍歷可走的每一步round2 */
+				for(int k=0;k<liveChessRound2.size();k++){
+					/* 可走的每一步round2 */
+					ArrayList<Point> moveSetRound2 = this.getMoveSet(chessRound2, liveChessRound2.get(k), this.opponentSide);
+					/* 開始遍歷可走的每一步round2 */
+					for(int l=0;l<moveSetRound2.size();l++){
+						/* 取得這一步棋的分數round2 */
+						int pointRound2 = calculatePoint(chessRound2, liveChessRound2.get(k),moveSetRound2.get(l), this.opponentSide) * (-1);
+						/* 模擬移動round2 */
+						Chess[] chessRound3 = this.simulateMove(this.getAllCopyChess(chessRound2), liveChessRound2.get(k), moveSetRound2.get(l));
+						/* 第三層遍歷，取得活著的我方棋子 */
+						ArrayList<Chess> liveChessRound3 = this.getAllMyLiveChess(chessRound3);
+						for(int s=0;s<liveChessRound3.size();s++){
+							/* 可走的每一步round3 */
+							ArrayList<Point> moveSetRound3 = this.getMoveSet(chessRound3, liveChessRound3.get(s), this.myChessSide);
+							/* 開始遍歷可走的每一步round3 */
+							for(int t=0;t<moveSetRound3.size();t++){
+								/* 取得這一步棋的分數round3 */
+								int pointRound3 = calculatePoint(chessRound3, liveChessRound3.get(s),moveSetRound3.get(t), this.myChessSide);
+								
+								// 收官
+								if(max < pointRound1 + pointRound2 + pointRound3){
+									max = pointRound1 + pointRound2 + pointRound3;
+									maxMoveChess = liveChessRound1.get(i);
+									maxMovePoint = moveSetRound1.get(j);
+									
+									maxP1 = pointRound1;
+									maxP2 = pointRound2;
+									maxP3 = pointRound3;
+								}
+								
+							}
+						}
+					}
+				}
+			}
+		}
+		System.out.println(maxP1+"___"+maxP2+"___"+maxP3);
+		
+		return new MyMove(maxMoveChess,maxMovePoint);
+	}	
+	
+	
+	
+	
 
 }
