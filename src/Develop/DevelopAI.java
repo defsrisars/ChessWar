@@ -44,7 +44,6 @@ public class DevelopAI extends AbstractPlayer{
 	};
 	
 	private static final int infMax = Integer.MAX_VALUE;
-	private static final int infMin = Integer.MIN_VALUE;
 	
 	private int MinMaxDepth = 2 ;
 
@@ -62,6 +61,7 @@ public class DevelopAI extends AbstractPlayer{
 		Chess maxMoveChess = null;
 		Point maxMovePoint = null;
 		
+		int beta  = infMax;
 		/* 每一顆活著的棋子 */
 		for(int i=0;i<liveChess.size();i++){
 			/* 可走的每一步round1 */
@@ -71,14 +71,12 @@ public class DevelopAI extends AbstractPlayer{
 				Chess thisChess = liveChess.get(i);
 				Point thisMove = moveSet.get(j);
 				// 能勝利直接剪枝
-				if(HelpFunction.hasChess(chess, thisMove)){
-					Chess eatedChess = HelpFunction.getChess(chess, thisMove);
-					if(eatedChess.getChessName().equals("帥") || eatedChess.getChessName().equals("將"))
-						return new MyMove(thisChess, thisMove);
+				if(HelpFunction.isExistKing(chess, thisMove, this.myChessSide)){
+					return new MyMove(thisChess, thisMove);
 				}
 				// 取得這手分數
 				int thisMovePoint = this.calculatePoint(chess, thisChess, thisMove, this.myChessSide);
-				int totalPoint = alphaBeta(chess, thisChess, thisMove, MinMaxDepth, infMin, infMax, this.myChessSide, thisMovePoint);
+				int totalPoint = alphaBeta(chess, thisChess, thisMove, MinMaxDepth, max, beta, this.myChessSide, thisMovePoint);
 				/* 記錄最佳手 */
 				if(max < totalPoint){
 					max = totalPoint;
@@ -659,8 +657,6 @@ public class DevelopAI extends AbstractPlayer{
 		
 		return new MyMove(maxMoveChess,maxMovePoint);
 	}	
-	
-	
 	
 	
 

@@ -4,6 +4,7 @@ import java.awt.Point;
 
 import ChessGame.Chess;
 import ChessGame.ChessSide;
+import ObserverData.MyMove;
 
 public class HelpFunction {
 	
@@ -378,6 +379,36 @@ public class HelpFunction {
 	public static double calDistance(Point p1, Point p2) {
 
 		return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+
+	}
+	
+	/**
+	 * 確認此位置是否存在對方的將或帥
+	 * @param chess Chess[] 目前盤面
+	 * @param p Point 欲吃棋之位置
+	 * @param ChessSide 我方的顏色
+	 * @return 回傳是否可吃對方將帥
+	 */
+	public static boolean isExistKing(Chess[] chess, Point p, ChessSide side) {
+		
+		if(HelpFunction.hasChess(chess, p)){
+			Chess eatedChess = HelpFunction.getChess(chess, p);
+			if(side == ChessSide.BLACK){
+				if(eatedChess.getChessName().equals("帥")){
+					return true;
+				}else{
+					return false;
+				}
+			}else{
+				if(eatedChess.getChessName().equals("將")){
+					return true;
+				}else{
+					return false;
+				}
+			}
+		}else{
+			return false;
+		}
 
 	}
 	
