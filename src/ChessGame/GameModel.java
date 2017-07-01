@@ -24,6 +24,7 @@ import NormalPattern.NormalGameSetting;
 import ObserverData.ChangeTurnData;
 import ObserverData.MyMove;
 import ObserverData.GameOverData;
+import ObserverData.LeaveGameData;
 import ObserverData.OpponentMove;
 import Save.RecordGame;
 import Share.GameSetting;
@@ -407,6 +408,14 @@ public class GameModel extends Observable implements Observer{
 		notifyObservers(new GameOverData(winner,false,this.recordGame));
 		
 		JOptionPane.showMessageDialog(new JPanel(), gameOverText, "遊戲結束", JOptionPane.INFORMATION_MESSAGE, MainFrame.icon_alert);
+	}
+	
+	/**
+	 * 當點擊離開遊戲
+	 */
+	public void leaveGame() {
+		setChanged();
+		notifyObservers(new LeaveGameData());
 	}
 	
 	/**

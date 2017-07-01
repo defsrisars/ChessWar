@@ -17,6 +17,7 @@ import FrameView.MainFrame;
 import NormalPattern.PlayingPlayerView;
 import ObserverData.ChangeTurnData;
 import ObserverData.GameOverData;
+import ObserverData.LeaveGameData;
 
 public class PlayingTimeoutView implements Observer{
 	
@@ -129,6 +130,9 @@ public class PlayingTimeoutView implements Observer{
 			}
 		}else if(arg instanceof GameOverData){
 			// 停止計時
+			if(this.task != null && this.timer != null)
+				this.stopTimer();
+		}else if(arg instanceof LeaveGameData){
 			if(this.task != null && this.timer != null)
 				this.stopTimer();
 		}

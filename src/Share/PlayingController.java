@@ -66,6 +66,7 @@ public class PlayingController implements ActionListener{
 			int opt = JOptionPane.showConfirmDialog(this.framePanel,text,"離開遊戲",
 										JOptionPane.YES_NO_OPTION,JOptionPane.WARNING_MESSAGE,icon);
 			if(opt == JOptionPane.YES_OPTION){
+				this.playingModel.getGameModel().leaveGame();
 				this.cardLayout.show(this.framePanel, "MainFrame");
 			}
 			break;

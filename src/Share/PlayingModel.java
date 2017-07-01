@@ -50,6 +50,10 @@ public class PlayingModel implements Serializable,Observer{
 		return this.gameSetting ;
 	}
 	
+	public GameModel getGameModel(){
+		return this.gameModel;
+	}
+	
 	public RecordGame getGameRecord(){
 		return this.record;
 	}
